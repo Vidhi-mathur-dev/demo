@@ -1,29 +1,61 @@
 ---
-- name: demoplaybook setup
+- name: Define inventory dynamically
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add web server 01
+      ansible.builtin.add_host:
+        name: demoweb01
+        groups: webservers
+        ansible_host: 172.31.6.6
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: /var/lib/jenkins/.ssh/demouserkey.pem
+
+    - name: Add web server 02
+      ansible.builtin.add_host:
+        name: demoweb02
+        groups: webservers
+        ansible_host: 172.31.15.202
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: /var/lib/jenkins/.ssh/demouserkey.pem
+
+    - name: Add db server 01
+      ansible.builtin.add_host:
+        name: demodb01
+        groups: dbservers
+        ansible_host: 172.31.15.126
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: /var/lib/jenkins/.ssh/demouserkey.pem
+
+# --------------------------------------
+- name: Webserver setup
   hosts: webservers
   become: yes
+  gather_facts: yes
   tasks:
     - name: Install httpd
-      ansible.builtin.yum: 
+      ansible.builtin.yum:
         name: httpd
         state: present
 
-    - name: Start service
+    - name: Start and enable httpd service
       ansible.builtin.service:
         name: httpd
         state: started
-        enabled: yes 
+        enabled: yes
 
+# --------------------------------------
 - name: DBserver setup
   hosts: dbservers
   become: yes
+  gather_facts: yes
   tasks:
     - name: Install mariadb-server
       ansible.builtin.yum:
         name: mariadb-server
         state: present
 
-    - name: Start mariadb service
+    - name: Start and enable mariadb service
       ansible.builtin.service:
         name: mariadb
         state: started
